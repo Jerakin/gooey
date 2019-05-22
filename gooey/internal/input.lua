@@ -32,6 +32,33 @@ local function get_text_width(node, text)
 	return result
 end
 
+local pivot_map = {
+	[gui.PIVOT_CENTER]=0.5,
+	[gui.PIVOT_E]=1,
+	[gui.PIVOT_N]=0.5,
+	[gui.PIVOT_NE]=1,
+	[gui.PIVOT_NW]=0,
+	[gui.PIVOT_S]=0.5,
+	[gui.PIVOT_SE]=1,
+	[gui.PIVOT_SW]=0,
+	[gui.PIVOT_W]=0
+}
+
+local function get_clicked_position(node, action, text)
+	local node_position = core.get_root_position(node)
+	local node_width = gui.get_size(node).x
+	local pivot = gui.get_pivot(node)
+	
+	-- Convert click position to a relative position in the node
+	local local_position = action.x - (node_position.x + pivot_map[pivot] * node_width)
+
+	for i=#text, 1, -1 do
+		if local_position > get_text_width(node, text:sub(1, i)) then
+			return i - #text
+		end
+	end
+	return -#text
+end
 
 function M.utf8_gfind(text)
 	return text:gmatch("([%z\1-\127\194-\244][\128-\191]*)")
@@ -169,6 +196,10 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 			elseif action_id == actions.ARROW_RIGHT and (action.pressed or action.repeated) then
 				input.consumed = true
 				input.position = math.min(input.position + 1, 0)
+				input.position_width = get_text_width(input.node, input.text:sub(1, input.position-1))
+			elseif input.selected and (action.pressed or action.repeated) then
+				input.consumed = true
+				input.position = get_clicked_position(input.node, action, input.text)
 				input.position_width = get_text_width(input.node, input.text:sub(1, input.position-1))
 			end
 		end

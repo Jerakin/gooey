@@ -83,10 +83,11 @@ function INPUT.set_text(input, text)
 		input.empty = #text == 0 and #marked_text == 0
 
 		-- measure it
-		input.text_width = get_text_width(input.node, text)		
+		input.text_width = get_text_width(input.node, text)
 		input.marked_text_width = get_text_width(input.node, marked_text)
 		input.total_width = input.text_width + input.marked_text_width
-
+		input.position_width = get_text_width(input.node, input.text:sub(1, input.position-1))
+		
 		gui.set_text(input.node, text .. marked_text)
 	end
 end
@@ -101,7 +102,8 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 	input.enabled = core.is_enabled(node)
 	input.node = node
 	input.refresh_fn = refresh_fn
-
+	
+	input.position = input.position or 0
 	input.text = input.text or ""
 	input.marked_text = input.marked_text or ""
 	input.keyboard_type = keyboard_type
@@ -141,7 +143,7 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 				-- ignore arrow keys
 				if not string.match(hex, "EF9C8[0-3]") then
 					if not config or not config.allowed_characters or action.text:match(config.allowed_characters) then
-						input.text = input.text .. action.text
+						input.text = input.text:sub(1, input.position-1) .. action.text .. input.text:sub(input.position + #input.text + 1)
 						if config and config.max_length then
 							input.text = input.text:sub(1, config.max_length)
 						end
@@ -160,6 +162,14 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 					last_s = string.len(uchar)
 				end
 				input.text = string.sub(input.text, 1, string.len(input.text) - last_s)
+			elseif action_id == actions.ARROW_LEFT and (action.pressed or action.repeated) then
+				input.consumed = true
+				input.position = math.max(input.position - 1, -#input.text)
+				input.position_width = get_text_width(input.node, input.text:sub(1, input.position-1))
+			elseif action_id == actions.ARROW_RIGHT and (action.pressed or action.repeated) then
+				input.consumed = true
+				input.position = math.min(input.position + 1, 0)
+				input.position_width = get_text_width(input.node, input.text:sub(1, input.position-1))
 			end
 		end
 

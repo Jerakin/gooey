@@ -113,7 +113,7 @@ function INPUT.set_text(input, text)
 		input.text_width = get_text_width(input.node, text)
 		input.marked_text_width = get_text_width(input.node, marked_text)
 		input.total_width = input.text_width + input.marked_text_width
-		input.position_width = get_text_width(input.node, input.text:sub(1, input.position-1))
+		input.position_width = get_text_width(input.node, string.sub(text .. marked_text,1, input.position-1))
 		
 		gui.set_text(input.node, text .. marked_text)
 	end

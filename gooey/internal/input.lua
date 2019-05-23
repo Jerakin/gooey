@@ -185,10 +185,12 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 			elseif action_id == actions.BACKSPACE and (action.pressed or action.repeated) then
 				input.consumed = true
 				local last_s = 0
-				for uchar in M.utf8_gfind(input.text) do
+				local start_text = input.text:sub(1, input.position-1)
+				local end_text = input.text:sub(input.position + #input.text + 1)
+				for uchar in M.utf8_gfind(start_text) do
 					last_s = string.len(uchar)
 				end
-				input.text = string.sub(input.text, 1, string.len(input.text) - last_s)
+				input.text = string.sub(input.text, 1, string.len(start_text) - last_s) .. end_text
 			elseif action_id == actions.ARROW_LEFT and (action.pressed or action.repeated) then
 				input.consumed = true
 				input.position = math.max(input.position - 1, -#input.text)

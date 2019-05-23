@@ -44,7 +44,7 @@ local pivot_map = {
 	[gui.PIVOT_W]=0
 }
 
-local function get_clicked_position(node, action, text)
+local function get_touch_position(node, action, text)
 	local node_position = core.get_root_position(node)
 	local node_width = gui.get_size(node).x
 	local pivot = gui.get_pivot(node)
@@ -114,7 +114,7 @@ function INPUT.set_text(input, text)
 		input.marked_text_width = get_text_width(input.node, marked_text)
 		input.total_width = input.text_width + input.marked_text_width
 		input.position_start = get_text_width(input.node, input.text:sub(1, input.index_start-1))
-		input.position_end = get_text_width(input.node, input.text:sub(1, input.index_end-1))
+		input.position_end = input.position_start
 		gui.set_text(input.node, text .. marked_text)
 	end
 end
@@ -122,7 +122,7 @@ function INPUT.set_selected(input, start_index, end_index)
 	input.index_start = start_index
 	input.index_end = end_index
 	input.position_start = get_text_width(input.node, input.text:sub(1, end_index - #text))
-	input.position_end = get_text_width(input.node, (end_index + 1))
+	input.position_end = get_text_width(input.node, input.text:sub(end_index + 1))
 end
 
 function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
@@ -176,7 +176,17 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 				-- ignore arrow keys
 				if not string.match(hex, "EF9C8[0-3]") then
 					if not config or not config.allowed_characters or action.text:match(config.allowed_characters) then
-						input.text = input.text:sub(1, input.index_start-1) .. action.text .. input.text:sub(input.index_start + #input.text + 1)
+						local index = input.index_start + #input.text + 1
+						if  input.index_start <= input.index_end then
+							input.text = input.text:sub(1, input.index_start-1) .. action.text .. input.text:sub(input.index_end + #input.text + 1)
+							input.index_start = input.index_start + #input.text + 1 - #input.text
+							input.index_end = input.index_start
+						else
+							input.text = input.text:sub(1, input.index_end-1) .. action.text .. input.text:sub(input.index_start + #input.text + 1)
+							input.index_start = input.index_end + #input.text + 1 - #input.text
+							input.index_end = input.index_start
+						end
+						
 						if config and config.max_length then
 							input.text = input.text:sub(1, config.max_length)
 						end
@@ -205,11 +215,16 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 				input.index_start = math.min(input.index_start + 1, 0)
 				input.position_start = get_text_width(input.node, input.text:sub(1, input.index_start-1))
 				input.position_end = input.position_start
-			elseif input.selected and (action.pressed or action.repeated) then
+			elseif input.selected and action.pressed then
 				input.consumed = true
-				input.index_start = get_clicked_position(input.node, action, input.text)
+				input.index_start = get_touch_position(input.node, action, input.text)
+				input.index_end = input.index_start
 				input.position_start = get_text_width(input.node, input.text:sub(1, input.index_start-1))
 				input.position_end = input.position_start
+			elseif input.selected and action_id == actions.TOUCH then
+				input.consumed = true
+				input.index_end = get_touch_position(input.node, action, input.text)
+				input.position_end = get_text_width(input.node,  input.text:sub(1, input.index_end-1))
 			end
 		end
 

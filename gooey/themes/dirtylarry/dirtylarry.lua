@@ -81,7 +81,7 @@ local function refresh_input(input, config, node_id)
 	local selection = gui.get_node(node_id .. "/selection")
 	if input.selected then
 		gui.set_position(selection, vmath.vector3(14 + input.position_start, 0, 0))
-		gui.set_size(selection, vmath.vector3(input.position_end - input.position_start, 40, 0))
+		gui.set_size(selection, vmath.vector3(input.position_start-input.position_end, 40, 0))
 		
 		gui.set_enabled(cursor, true)
 		gui.set_position(cursor, vmath.vector3(14 + input.position_start, 0, 0))

@@ -78,9 +78,13 @@ local function refresh_input(input, config, node_id)
 	end
 
 	local cursor = gui.get_node(node_id .. "/cursor")
+	local selection = gui.get_node(node_id .. "/selection")
 	if input.selected then
+		gui.set_position(selection, vmath.vector3(14 + input.position_start, 0, 0))
+		gui.set_size(selection, vmath.vector3(input.position_end - input.position_start, 40, 0))
+		
 		gui.set_enabled(cursor, true)
-		gui.set_position(cursor, vmath.vector3(14 + input.position_width, 0, 0))
+		gui.set_position(cursor, vmath.vector3(14 + input.position_start, 0, 0))
 		gui.cancel_animation(cursor, gui.PROP_COLOR)
 		gui.set_color(cursor, vmath.vector4(1))
 		gui.animate(cursor, gui.PROP_COLOR, vmath.vector4(1,1,1,0), gui.EASING_INSINE, 0.8, 0, nil, gui.PLAYBACK_LOOP_PINGPONG)

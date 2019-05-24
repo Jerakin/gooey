@@ -1,5 +1,6 @@
 local core = require "gooey.internal.core"
 local actions = require "gooey.actions"
+local utf8 = require "gooey.internal.utf8"
 
 local M = {}
 
@@ -32,37 +33,11 @@ local function get_text_width(node, text)
 	return result
 end
 
-local pivot_map = {
-	[gui.PIVOT_CENTER]=0.5,
-	[gui.PIVOT_E]=1,
-	[gui.PIVOT_N]=0.5,
-	[gui.PIVOT_NE]=1,
-	[gui.PIVOT_NW]=0,
-	[gui.PIVOT_S]=0.5,
-	[gui.PIVOT_SE]=1,
-	[gui.PIVOT_SW]=0,
-	[gui.PIVOT_W]=0
-}
 
-local function get_clicked_position(node, action, text)
-	local node_position = core.get_root_position(node)
-	local node_width = gui.get_size(node).x
-	local pivot = gui.get_pivot(node)
-	
-	-- Convert click position to a relative position in the node
-	local local_position = action.x - (node_position.x + pivot_map[pivot] * node_width)
-
-	for i=#text, 1, -1 do
-		if local_position > get_text_width(node, text:sub(1, i)) then
-			return i - #text
-		end
-	end
-	return -#text
+function M.utf8_gfind(text, regex)
+	return utf8.gmatch(text, regex)
 end
 
-function M.utf8_gfind(text)
-	return text:gmatch("([%z\1-\127\194-\244][\128-\191]*)")
-end
 
 --- Mask text by replacing every character with a mask
 -- character
@@ -72,7 +47,7 @@ end
 function M.mask_text(text, mask)
 	mask = mask or "*"
 	local masked_text = ""
-	for uchar in M.utf8_gfind(text) do
+	for uchar in M.utf8_gfind(text, ".") do
 		masked_text = masked_text .. mask
 	end
 	return masked_text
@@ -113,12 +88,13 @@ function INPUT.set_text(input, text)
 		input.text_width = get_text_width(input.node, text)
 		input.marked_text_width = get_text_width(input.node, marked_text)
 		input.total_width = input.text_width + input.marked_text_width
-		input.position_width = get_text_width(input.node, string.sub(text .. marked_text,1, input.position-1))
-		
+
 		gui.set_text(input.node, text .. marked_text)
 	end
 end
-
+function INPUT.set_long_pressed_time(input, time)
+	input.long_pressed_time = time
+end
 
 function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 	node_id = core.to_hash(node_id)
@@ -129,8 +105,7 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 	input.enabled = core.is_enabled(node)
 	input.node = node
 	input.refresh_fn = refresh_fn
-	
-	input.position = input.position or 0
+
 	input.text = input.text or ""
 	input.marked_text = input.marked_text or ""
 	input.keyboard_type = keyboard_type
@@ -152,6 +127,7 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 			gui.show_keyboard(keyboard_type, true)
 		elseif input.selected and action.pressed and action_id == actions.TOUCH and not input.over then
 			input.selected = false
+			input.marked_text = ""
 			gui.hide_keyboard()
 		end
 
@@ -170,9 +146,9 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 				-- ignore arrow keys
 				if not string.match(hex, "EF9C8[0-3]") then
 					if not config or not config.allowed_characters or action.text:match(config.allowed_characters) then
-						input.text = input.text:sub(1, input.position-1) .. action.text .. input.text:sub(input.position + #input.text + 1)
+						input.text = input.text .. action.text
 						if config and config.max_length then
-							input.text = input.text:sub(1, config.max_length)
+							input.text = utf8.sub(input.text, 1, config.max_length)
 						end
 					end
 					input.marked_text = ""
@@ -181,28 +157,13 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 			elseif action_id == actions.MARKED_TEXT then
 				input.consumed = true
 				input.marked_text = action.text or ""
+				if config and config.max_length then
+					input.marked_text = utf8.sub(input.marked_text, 1, config.max_length)
+				end
 			-- input deletion
 			elseif action_id == actions.BACKSPACE and (action.pressed or action.repeated) then
 				input.consumed = true
-				local last_s = 0
-				local start_text = input.text:sub(1, input.position-1)
-				local end_text = input.text:sub(input.position + #input.text + 1)
-				for uchar in M.utf8_gfind(start_text) do
-					last_s = string.len(uchar)
-				end
-				input.text = string.sub(input.text, 1, string.len(start_text) - last_s) .. end_text
-			elseif action_id == actions.ARROW_LEFT and (action.pressed or action.repeated) then
-				input.consumed = true
-				input.position = math.max(input.position - 1, -#input.text)
-				input.position_width = get_text_width(input.node, input.text:sub(1, input.position-1))
-			elseif action_id == actions.ARROW_RIGHT and (action.pressed or action.repeated) then
-				input.consumed = true
-				input.position = math.min(input.position + 1, 0)
-				input.position_width = get_text_width(input.node, input.text:sub(1, input.position-1))
-			elseif input.selected and (action.pressed or action.repeated) then
-				input.consumed = true
-				input.position = get_clicked_position(input.node, action, input.text)
-				input.position_width = get_text_width(input.node, input.text:sub(1, input.position-1))
+				input.text = utf8.sub(input.text, 1, -2)
 			end
 		end
 

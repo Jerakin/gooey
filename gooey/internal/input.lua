@@ -182,17 +182,12 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 				-- ignore arrow keys
 				if not string.match(hex, "EF9C8[0-3]") then
 					if not config or not config.allowed_characters or action.text:match(config.allowed_characters) then
-						local index = input.index_start + #input.text + 1
-						if  input.index_start <= input.index_end then
-							input.text = input.text:sub(1, input.index_start-1) .. action.text .. input.text:sub(input.index_end + #input.text + 1)
-							input.index_start = input.index_start + #input.text + 1 - #input.text
-							input.index_end = input.index_start
-						else
-							input.text = input.text:sub(1, input.index_end-1) .. action.text .. input.text:sub(input.index_start + #input.text + 1)
-							input.index_start = input.index_end + #input.text + 1 - #input.text
-							input.index_end = input.index_start
-						end
-						
+						local min_index = math.min(input.index_start, input.index_end)
+						local max_index = math.max(input.index_start, input.index_end)
+
+						input.text = utf8.sub(input.text, 1, min_index-1) .. action.text .. utf8.sub(input.text, max_index + #input.text + 1)
+						input.index_start = input.index_start + #input.text - #input.text
+						input.index_end = input.index_start
 						if config and config.max_length then
 							input.text = utf8.sub(input.text, 1, config.max_length)
 						end
@@ -209,15 +204,25 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 			-- input deletion
 			elseif action_id == actions.BACKSPACE and (action.pressed or action.repeated) then
 				input.consumed = true
-				input.text = utf8.sub(input.text, 1, -2)
+				local min_index = math.min(input.index_start, input.index_end)
+				local max_index = math.max(input.index_start, input.index_end)
+				
+				if min_index == max_index then
+					-- If text isn't selected then we simply want to delete the character to the left
+					input.text = utf8.sub(input.text, 1, min_index-2) .. utf8.sub(input.text, max_index + #input.text + 1)
+				else
+					input.text = utf8.sub(input.text, 1, min_index-1) .. utf8.sub(input.text, max_index + #input.text + 1)
+				end
 			elseif action_id == actions.ARROW_LEFT and (action.pressed or action.repeated) then
 				input.consumed = true
 				input.index_start = math.max(input.index_start - 1, -#input.text)
+				input.index_end = input.index_start
 				input.position_start = get_text_width(input.node, input.text:sub(1, input.index_start-1))
 				input.position_end = input.position_start
 			elseif action_id == actions.ARROW_RIGHT and (action.pressed or action.repeated) then
 				input.consumed = true
 				input.index_start = math.min(input.index_start + 1, 0)
+				input.index_end = input.index_start
 				input.position_start = get_text_width(input.node, input.text:sub(1, input.index_start-1))
 				input.position_end = input.position_start
 			elseif input.selected and action.pressed then

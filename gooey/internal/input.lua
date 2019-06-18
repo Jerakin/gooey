@@ -186,7 +186,7 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 						local max_index = math.max(input.index_start, input.index_end)
 
 						input.text = utf8.sub(input.text, 1, min_index-1) .. action.text .. utf8.sub(input.text, max_index + #input.text + 1)
-						input.index_start = input.index_start + #input.text - #input.text
+						input.index_start = max_index
 						input.index_end = input.index_start
 						if config and config.max_length then
 							input.text = utf8.sub(input.text, 1, config.max_length)

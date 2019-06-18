@@ -139,10 +139,11 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 	input.enabled = core.is_enabled(node)
 	input.node = node
 	input.refresh_fn = refresh_fn
-
+	
 	input.index_end = input.index_end or 0
 	input.index_start = input.index_start or 0
-	input.text = input.text or ""
+	local use_marked_text = (config and config.use_marked_text == nil) and true or (config and config.use_marked_text)
+	input.text = input.text or "" .. (not use_marked_text and input.marked_text or "")
 	input.marked_text = input.marked_text or ""
 	input.keyboard_type = keyboard_type
 	
@@ -163,6 +164,7 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 			gui.show_keyboard(keyboard_type, true)
 		elseif input.selected and action.pressed and action_id == actions.TOUCH and not input.over then
 			input.selected = false
+			input.text = input.text .. (not use_marked_text and input.marked_text or "")
 			input.marked_text = ""
 			gui.hide_keyboard()
 		end

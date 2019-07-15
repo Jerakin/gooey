@@ -54,7 +54,9 @@ local function get_touch_position(node, action, text)
 	local local_position = action.x - (node_position.x + pivot_map[pivot] * node_width)
 
 	for i=#text, 1, -1 do
-		if local_position > get_text_width(node, text:sub(1, i)) then
+		local text_width = get_text_width(node, text:sub(1, i))
+		local char_width = get_text_width(node, text:sub(i, i)) * 0.5
+		if local_position > text_width - char_width then
 			return i - #text
 		end
 	end

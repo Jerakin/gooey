@@ -210,13 +210,14 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 				input.consumed = true
 				local min_index = math.min(input.index_start, input.index_end)
 				local max_index = math.max(input.index_start, input.index_end)
-				
 				if min_index == max_index then
 					-- If text isn't selected then we simply want to delete the character to the left
 					input.text = utf8.sub(input.text, 1, min_index-2) .. utf8.sub(input.text, max_index + #input.text + 1)
 				else
 					input.text = utf8.sub(input.text, 1, min_index-1) .. utf8.sub(input.text, max_index + #input.text + 1)
 				end
+				input.index_start = max_index
+				input.index_end = input.index_start
 			elseif action_id == actions.ARROW_LEFT and (action.pressed or action.repeated) then
 				input.consumed = true
 				input.index_start = math.max(input.index_start - 1, -#input.text)

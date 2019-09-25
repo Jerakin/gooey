@@ -25,7 +25,11 @@ local function load_image(url, cb)
 	http.request(url, "GET", function(self, id, response)
 		local image_data = response.response
 		if response.status == 200 then
-			local f = io.open(path, "wb")
+			local f, err = io.open(path, "wb")
+			if not f then
+				print(err)
+				return
+			end
 			f:write(image_data)
 			f:flush()
 			f:close()
@@ -57,8 +61,8 @@ function M.clear(cache)
 	for url,_ in pairs(cache.url_to_image) do
 		gui.delete_texture(url)
 	end
-	url_to_image = {}
-	node_to_url = {}
+	cache.url_to_image = {}
+	cache.node_to_url = {}
 end
 
 

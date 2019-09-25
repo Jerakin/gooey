@@ -20,6 +20,11 @@ function M.is_enabled(node)
 	return core.is_enabled(node)
 end
 
+function M.set_window_size(width, height)
+	assert(width, "You must provide a window width")
+	assert(height, "You must provide a window height")
+	core.set_window_size(width, height)
+end
 
 --- Convenience function to acquire input focus
 function M.acquire_input()

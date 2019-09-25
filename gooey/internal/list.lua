@@ -95,8 +95,11 @@ local function get_instance(list_id, stencil_id, refresh_fn, lists)
 	list.scroll = list.scroll or vmath.vector3()
 	list.stencil = list.stencil or gui.get_node(stencil_id)
 	list.stencil_size = list.stencil_size or gui.get_size(list.stencil)
+	print("init", list.stencil_size)
 	list.refresh_fn = refresh_fn
 	list.enabled = core.is_enabled(list.stencil)
+	list.window = {}
+	list.window.width, list.window.height = core.get_window_size()
 	return list
 end
 
@@ -276,12 +279,28 @@ function M.dynamic(list_id, stencil_id, item_id, data, action_id, action, fn, re
 	list.is_horizontal = is_horizontal
 
 	-- create list items (once!)
-	if not list.items then
+	local window_width, window_height = core.get_window_size()
+	local window_size_changed = list.window.width ~= window_width or list.window_height ~= window_height
+	if window_size_changed then
+		list.window.width = window_width
+		list.window_height = window_height
+		list.stencil_size = gui.get_size(list.stencil)
+		print("resize", list.stencil_size)
+	end
+	if not list.items or window_size_changed then
 		item_id = core.to_hash(item_id)
+		print("item_id", item_id)
 		local item_node = gui.get_node(item_id)
 		local item_pos = gui.get_position(item_node)
 		local item_size = gui.get_size(item_node)
-		list.items = {}
+		gui.set_enabled(item_node, true)
+		if list.items then
+			while #list.items > 0 do
+				gui.delete_node(table.remove(list.items).root)
+			end
+		else
+			list.items = {}
+		end
 		list.item_size = item_size
 		list.scroll_pos = vmath.vector3(0)
 		list.first_item_pos = vmath.vector3(item_pos)
@@ -291,7 +310,7 @@ function M.dynamic(list_id, stencil_id, item_id, data, action_id, action, fn, re
 		if list.is_horizontal then
 			item_count = (math.ceil(list.stencil_size.x / item_size.x) + 1)
 		else
-			item_count =(math.ceil(list.stencil_size.y / item_size.y) + 1)
+			item_count = (math.ceil(list.stencil_size.y / item_size.y) + 1)
 		end
 		for i=1,item_count do
 			local nodes = gui.clone_tree(item_node)
@@ -310,7 +329,8 @@ function M.dynamic(list_id, stencil_id, item_id, data, action_id, action, fn, re
 			end
 			gui.set_position(list.items[i].root, pos)
 		end
-		gui.delete_node(item_node)
+		gui.set_enabled(item_node, false)
+		--gui.delete_node(item_node)
 	end
 
 	-- recalculate size of list if the amount of data has changed

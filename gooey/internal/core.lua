@@ -6,6 +6,30 @@ local EMPTY = hash("")
 
 local long_press_start = 0
 
+local display = {
+	width = tonumber(sys.get_config("display.width")),
+	height = tonumber(sys.get_config("display.height")),
+}
+
+local window = {
+	width = tonumber(sys.get_config("display.width")),
+	height = tonumber(sys.get_config("display.height")),
+}
+
+function M.set_window_size(width, height)
+	window.width = width
+	window.height = height
+	print("set_window_size", width, height)
+end
+
+function M.get_window_size()
+	return window.width, window.height
+end
+
+function M.get_display_size()
+	return display.width, display.height
+end
+
 local function handle_action(component, action_id, action)
 	action.id = action.id or -1
 	component.long_pressed_time = component.long_pressed_time or 1.5

@@ -6,6 +6,29 @@ local EMPTY = hash("")
 
 local long_press_start = 0
 
+local display = {
+	width = tonumber(sys.get_config("display.width")),
+	height = tonumber(sys.get_config("display.height")),
+}
+
+local window = {
+	width = tonumber(sys.get_config("display.width")),
+	height = tonumber(sys.get_config("display.height")),
+}
+
+function M.set_window_size(width, height)
+	window.width = width
+	window.height = height
+end
+
+function M.get_window_size()
+	return window.width, window.height
+end
+
+function M.get_display_size()
+	return display.width, display.height
+end
+
 local function handle_action(component, action_id, action)
 	action.id = action.id or -1
 	component.long_pressed_time = component.long_pressed_time or 1.5
@@ -158,4 +181,37 @@ function M.clamp(v, min, max)
 		return v
 	end
 end
+
+
+local function get_scale_coefficients()
+	local display_x, display_y = M.get_display_size()
+	local display_size = vmath.vector3(display_x, display_y, 0) -- layout size
+
+	local window_x, window_y = M.get_window_size()
+	local window_size = vmath.vector3(window_x, window_y, 0)
+
+	local sx, sy = window_size.x / display_size.x, window_size.y / display_size.y -- scale coef for x and y
+	local sx2, sy2 = sx/sy, sy/sx
+	return sx2, sy2
+end
+
+function M.get_size(node)
+	local size = gui.get_size(node)
+	local adjustment = gui.get_adjust_mode(node)
+	local sx, sy = get_scale_coefficients()
+	local min = math.min(sx, sy)
+
+	if adjustment == gui.ADJUST_STRETCH then
+		size.x = size.x * sx
+		size.y = size.y * sy
+	elseif adjustment == gui.ADJUST_FIT then
+		-- Stay the same size
+	elseif adjustment == gui.ADJUST_ZOOM then
+		size.x = size.x * min
+		size.y = size.y * min
+	end
+
+	return size
+end
+
 return M

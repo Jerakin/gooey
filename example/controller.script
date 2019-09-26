@@ -1,3 +1,5 @@
+local gooey = require "gooey.gooey"
+
 local function show(self, proxy)
 	if self.current_proxy then
 		msg.post(self.current_proxy, "unload")
@@ -5,7 +7,21 @@ local function show(self, proxy)
 	msg.post(proxy, "async_load")
 end
 
+
+local function scale(vec)
+	msg.post("@render:", "resize", { width = vec.x*vec.z, height = vec.y*vec.z } )
+end
+
 function init(self)
+	-- Z is used for scale
+	local project = vmath.vector3(640, 1136, 1)
+	local project2 = vmath.vector3(720, 1280, 1)
+	local pixel = vmath.vector3(1440, 2560, 0.5)
+	local galaxya8 = vmath.vector3(1080, 2220, 0.5)
+	
+	scale(galaxya8)
+	gooey.set_window_size(galaxya8.x*galaxya8.z, galaxya8.y*galaxya8.z)
+	
 	msg.post(".", "acquire_input_focus")
 	show(self, "#menuproxy")
 	msg.post("@render:", "clear_color", { color = vmath.vector4(0.15, 0.15, 0.15, 1.0) })

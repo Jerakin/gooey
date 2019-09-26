@@ -94,7 +94,7 @@ local function get_instance(list_id, stencil_id, refresh_fn, lists)
 	list.id = list_id
 	list.scroll = list.scroll or vmath.vector3()
 	list.stencil = list.stencil or gui.get_node(stencil_id)
-	list.stencil_size = list.stencil_size or gui.get_size(list.stencil)
+	list.stencil_size = list.stencil_size or core.get_size(list.stencil)
 	list.refresh_fn = refresh_fn
 	list.enabled = core.is_enabled(list.stencil)
 	return list
@@ -221,7 +221,7 @@ function M.static(list_id, stencil_id, item_ids, action_id, action, fn, refresh_
 				root = node,
 				nodes = { [core.to_hash(item_id)] = node },
 				index = i,
-				size = gui.get_size(node),
+				size = core.get_size(node),
 			}
 			gui.set_parent(node, list.stencil)
 		end
@@ -230,13 +230,13 @@ function M.static(list_id, stencil_id, item_ids, action_id, action, fn, refresh_
 		local last_item = list.items[#list.items].root
 		local total_dimension, list_dimension
 		if is_horizontal then
-			total_dimension = last_item and (math.abs(gui.get_position(last_item).x) + gui.get_size(last_item).x / 2) or 0
-			list_dimension = gui.get_size(list.stencil).x
+			total_dimension = last_item and (math.abs(gui.get_position(last_item).x) + core.get_size(last_item).x / 2) or 0
+			list_dimension = core.get_size(list.stencil).x
 			list.min_x = 0
 			list.max_x = total_dimension - list_dimension
 		else
-			total_dimension = last_item and (math.abs(gui.get_position(last_item).y) + gui.get_size(last_item).y / 2) or 0
-			list_dimension = gui.get_size(list.stencil).y
+			total_dimension = last_item and (math.abs(gui.get_position(last_item).y) + core.get_size(last_item).y / 2) or 0
+			list_dimension = core.get_size(list.stencil).y
 			list.min_y = 0
 			list.max_y = total_dimension - list_dimension
 		end
@@ -280,7 +280,7 @@ function M.dynamic(list_id, stencil_id, item_id, data, action_id, action, fn, re
 		item_id = core.to_hash(item_id)
 		local item_node = gui.get_node(item_id)
 		local item_pos = gui.get_position(item_node)
-		local item_size = gui.get_size(item_node)
+		local item_size = core.get_size(item_node)
 		list.items = {}
 		list.item_size = item_size
 		list.scroll_pos = vmath.vector3(0)
@@ -299,7 +299,7 @@ function M.dynamic(list_id, stencil_id, item_id, data, action_id, action, fn, re
 				root = nodes[item_id],
 				nodes = nodes,
 				index = i,
-				size = gui.get_size(nodes[item_id]),
+				size = core.get_size(nodes[item_id]),
 				data = data[i] or ""
 			}
 			local pos

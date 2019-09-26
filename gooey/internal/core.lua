@@ -191,19 +191,28 @@ local function get_scale_coefficients()
 	local window_size = vmath.vector3(window_x, window_y, 0)
 
 	local sx, sy = window_size.x / display_size.x, window_size.y / display_size.y -- scale coef for x and y
+	return sx, sy
+end
+
+function M.get_scaled_position(action)
+	local sx, sy = get_scale_coefficients()
+	local position = vmath.vector3(action.x, action.y, 0)
 	local sx2, sy2 = sx/sy, sy/sx
-	return sx2, sy2
+	position.x = action.x / sx
+	position.y = action.y / sy
+	return position
 end
 
 function M.get_size(node)
 	local size = gui.get_size(node)
 	local adjustment = gui.get_adjust_mode(node)
 	local sx, sy = get_scale_coefficients()
-	local min = math.min(sx, sy)
+	local sx2, sy2 = sx/sy, sy/sx
+	local min = math.min( sx2, sy2)
 
 	if adjustment == gui.ADJUST_STRETCH then
-		size.x = size.x * sx
-		size.y = size.y * sy
+		size.x = size.x * sx2
+		size.y = size.y * sy2
 	elseif adjustment == gui.ADJUST_FIT then
 		-- Stay the same size
 	elseif adjustment == gui.ADJUST_ZOOM then

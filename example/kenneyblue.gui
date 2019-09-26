@@ -3149,7 +3149,7 @@ nodes {
   xanchor: XANCHOR_NONE
   yanchor: YANCHOR_NONE
   pivot: PIVOT_S
-  adjust_mode: ADJUST_MODE_FIT
+  adjust_mode: ADJUST_MODE_STRETCH
   parent: "dynamicscrollbar"
   layer: ""
   inherit_alpha: true
@@ -3163,6 +3163,7 @@ nodes {
   clipping_visible: true
   clipping_inverted: false
   alpha: 1.0
+  overridden_fields: 17
   template_node_child: true
   size_mode: SIZE_MODE_MANUAL
 }

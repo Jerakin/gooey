@@ -117,7 +117,7 @@ function INPUT.set_text(input, text)
 		input.text_width = get_text_width(input.node, text)
 		input.marked_text_width = get_text_width(input.node, marked_text)
 		input.total_width = input.text_width + input.marked_text_width
-		input.position_start = get_text_width(input.node, input.text:sub(1, input.index_start-1))
+		input.position_start = get_text_width(input.node, string.sub(text .. marked_text, 1, input.index_start-1))
 		input.position_end = input.position_start
 		gui.set_text(input.node, text .. marked_text)
 	end
@@ -231,15 +231,17 @@ function M.input(node_id, keyboard_type, action_id, action, config, refresh_fn)
 				input.position_start = get_text_width(input.node, input.text:sub(1, input.index_start-1))
 				input.position_end = input.position_start
 			elseif input.selected and action.pressed then
+				local text = input.text .. input.marked_text
 				input.consumed = true
-				input.index_start = get_touch_position(input.node, action, input.text)
+				input.index_start = get_touch_position(input.node, action, text)
 				input.index_end = input.index_start
-				input.position_start = get_text_width(input.node, input.text:sub(1, input.index_start-1))
+				input.position_start = get_text_width(input.node, text:sub(1, input.index_start-1))
 				input.position_end = input.position_start
 			elseif input.selected and action_id == actions.TOUCH then
+				local text = input.text .. input.marked_text
 				input.consumed = true
-				input.index_end = get_touch_position(input.node, action, input.text)
-				input.position_end = get_text_width(input.node,  input.text:sub(1, input.index_end-1))
+				input.index_end = get_touch_position(input.node, action, text)
+				input.position_end = get_text_width(input.node,  text:sub(1, input.index_end-1))
 			end
 		end
 

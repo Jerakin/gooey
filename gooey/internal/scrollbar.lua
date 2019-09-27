@@ -60,12 +60,15 @@ function M.vertical(handle_id, bounds_id, action_id, action, fn, refresh_fn)
 
 	if action then
 		scrollbar.refresh_fn = refresh_fn
-
-		local action_pos = core.get_scaled_position(vmath.vector3(action.x, action.y, 0))
-
 		core.clickable(scrollbar, action_id, action)
 		if scrollbar.pressed_now or scrollbar.pressed then
-			local bounds_pos = core.get_scaled_position(core.get_root_position(bounds))
+			local adjust = gui.get_adjust_mode(bounds)
+			local action_pos = vmath.vector3(action.x, action.y, 0)
+			core.scale_position(action_pos, adjust)
+
+			local bounds_pos = core.get_root_position(bounds)
+			core.scale_position(bounds_pos, adjust)
+			
 			local size = bounds_size.y - handle_size.y
 			local ratio = (size - (action_pos.y - bounds_pos.y - (scrollbar.handle_size.y / 2))) / size
 			SCROLLBAR.scroll_to(scrollbar, 0, ratio)

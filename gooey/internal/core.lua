@@ -194,21 +194,50 @@ local function get_scale_coefficients()
 	return sx, sy
 end
 
-function M.get_scaled_position(action)
+function M.get_scaled_position(node)
+	local position = gui.get_position(node)
+	local adjustment = gui.get_adjust_mode(node)
 	local sx, sy = get_scale_coefficients()
-	local position = vmath.vector3(action.x, action.y, 0)
-	local sx2, sy2 = sx/sy, sy/sx
-	position.x = action.x / sx
-	position.y = action.y / sy
+	local scale = math.min(sx, sy)
+	if adjustment == gui.ADJUST_STRETCH then
+		position.x = position.x / sx
+		position.y = position.y / sy
+	elseif adjustment == gui.ADJUST_ZOOM then
+		position.x = position.x / scale
+		position.y = position.y / scale
+	end
 	return position
 end
+
+function M.scale_position(position, adjustment)
+	local sx, sy = get_scale_coefficients()
+	local scale = math.min(sx, sy)
+	if adjustment == gui.ADJUST_STRETCH then
+		position.x = position.x / sx
+		position.y = position.y / sy
+	elseif adjustment == gui.ADJUST_ZOOM then
+		position.x = position.x / scale
+		position.y = position.y / scale
+	end
+end
+
+function M.scale_test(position, adjustment)
+	local sx, sy = get_scale_coefficients()
+	local sx2, sy2 = sx/sy, sy/sx
+	local scale = math.min(sx2, sy2)
+	--position.x = position.x * sx2
+	--position.y = position.y * sy2
+	position.x = position.x / sx
+	position.y = position.y / sy
+end
+
 
 function M.get_size(node)
 	local size = gui.get_size(node)
 	local adjustment = gui.get_adjust_mode(node)
 	local sx, sy = get_scale_coefficients()
 	local sx2, sy2 = sx/sy, sy/sx
-	local min = math.min( sx2, sy2)
+	local scale = math.min(sx2, sy2)
 
 	if adjustment == gui.ADJUST_STRETCH then
 		size.x = size.x * sx2
@@ -216,8 +245,8 @@ function M.get_size(node)
 	elseif adjustment == gui.ADJUST_FIT then
 		-- Stay the same size
 	elseif adjustment == gui.ADJUST_ZOOM then
-		size.x = size.x * min
-		size.y = size.y * min
+		size.x = size.x * scale
+		size.y = size.y * scale
 	end
 
 	return size

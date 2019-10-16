@@ -63,7 +63,7 @@ function M.vertical(handle_id, bounds_id, action_id, action, fn, refresh_fn)
 		core.clickable(scrollbar, action_id, action)
 		if scrollbar.pressed_now or scrollbar.pressed then
 			local adjust = gui.get_adjust_mode(bounds)
-			local action_pos = vmath.vector3(action.x, action.y, 0)
+			local action_pos = vmath.vector3(action.screen_x, action.screen_y, 0)
 			core.scale_position(action_pos, adjust)
 
 			local bounds_pos = core.get_root_position(bounds)

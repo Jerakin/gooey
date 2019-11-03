@@ -67,7 +67,7 @@ function M.vertical(handle_id, bounds_id, action_id, action, fn, refresh_fn)
 			core.scale_position(action_pos, adjust)
 
 			local bounds_pos = core.get_root_position(bounds)
-			core.scale_position(bounds_pos, adjust)
+			--core.scale_position(bounds_pos, adjust)
 			
 			local size = bounds_size.y - handle_size.y
 			local ratio = (size - (action_pos.y - bounds_pos.y - (scrollbar.handle_size.y / 2))) / size

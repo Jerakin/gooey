@@ -215,8 +215,10 @@ function M.get_size(node)
 	local scale = math.min(sx2, sy2)
 
 	if adjustment == gui.ADJUST_STRETCH then
-		size.x = size.x / scale
-		size.y = size.y / scale
+		if sx < sy then
+			size.x = size.x / scale
+			size.y = size.y / scale
+		end
 	elseif adjustment == gui.ADJUST_FIT then
 		-- Stay the same size
 	elseif adjustment == gui.ADJUST_ZOOM then

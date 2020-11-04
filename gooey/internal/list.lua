@@ -86,6 +86,9 @@ end
 function LIST.set_long_pressed_time(list, time)
 	list.long_pressed_time = time
 end
+function LIST.set_scroll_speed_multiplier(list, value)
+	list.scroll_speed_multiplier = value
+end
 
 -- get a list instance and set up some basics of a list on the instance
 local function get_instance(list_id, stencil_id, refresh_fn, lists)
@@ -134,9 +137,9 @@ local function handle_input(list, action_id, action, click_fn)
 		list.scroll_speed = math.min(list.scroll_speed + 0.25, 10)
 		list.scroll_time = time
 		if list.is_horizontal then
-			list.scroll_pos.x = list.scroll_pos.x + ((scroll_up and 1 or -1) * list.scroll_speed)
+			list.scroll_pos.x = list.scroll_pos.x + ((scroll_up and 1 or -1) * list.scroll_speed * list.scroll_speed_multiplier or 1)
 		else
-			list.scroll_pos.y = list.scroll_pos.y + ((scroll_up and 1 or -1) * list.scroll_speed)
+			list.scroll_pos.y = list.scroll_pos.y + ((scroll_up and 1 or -1) * list.scroll_speed * list.scroll_speed_multiplier or 1)
 		end
 		list.have_scrolled = true
 		if action.released then
